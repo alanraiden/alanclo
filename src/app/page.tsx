@@ -1064,6 +1064,8 @@ export default function Portfolio() {
   const [scrollProgress, setScrollProgress] = useState(0)
   const [form, setForm] = useState({ name: '', email: '', message: '' })
   const [sent, setSent] = useState(false)
+  const [sending, setSending] = useState(false)
+  const [sendError, setSendError] = useState('')
   const typed = useTyping(['Cloud Engineer', 'DevOps Engineer', 'AWS Architect', 'Automation Builder'], 72, 2200)
   useReveal()
 
@@ -1313,7 +1315,7 @@ export default function Portfolio() {
                 <div style={{ fontSize: 44, marginBottom: 14 }}>🚀</div>
                 <h3 style={{ fontFamily: 'var(--mono)', fontSize: 18, color: 'var(--teal)', marginBottom: 8 }}>message_sent!</h3>
                 <p style={{ color: 'var(--text-soft)', fontSize: 14 }}>Thanks! I&apos;ll get back to you within 24 hours.</p>
-                <button className="btn-glow" style={{ marginTop: 24 }} onClick={() => setSent(false)}>send_another()</button>
+                <button className="btn-glow" style={{ marginTop: 24 }} onClick={() => { setSent(false); setForm({ name: '', email: '', message: '' }) }}>send_another()</button>
               </div>
             ) : (
               <>
@@ -1330,9 +1332,42 @@ export default function Portfolio() {
                   <textarea className="finput ftextarea" placeholder="describe_your_project..."
                     value={form.message} onChange={e => setForm(f => ({ ...f, message: e.target.value }))} />
                 </div>
-                <button className="btn-glow" style={{ width: '100%' }}
-                  onClick={() => { if (form.name && form.email && form.message) setSent(true) }}>
-                  send_message()
+                {sendError && (
+                  <p style={{ color: '#f87171', fontFamily: 'var(--mono)', fontSize: 12, marginBottom: 10 }}>
+                    ⚠ {sendError}
+                  </p>
+                )}
+                <button
+                  className="btn-glow"
+                  style={{ width: '100%', opacity: sending ? 0.7 : 1 }}
+                  disabled={sending}
+                  onClick={async () => {
+                    if (!form.name || !form.email || !form.message) {
+                      setSendError('Please fill in all fields.')
+                      return
+                    }
+                    setSending(true)
+                    setSendError('')
+                    try {
+                      const res = await fetch('/api/contact', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(form),
+                      })
+                      if (res.ok) {
+                        setSent(true)
+                      } else {
+                        const data = await res.json()
+                        setSendError(data.error || 'Something went wrong. Try again.')
+                      }
+                    } catch {
+                      setSendError('Network error. Please try again.')
+                    } finally {
+                      setSending(false)
+                    }
+                  }}
+                >
+                  {sending ? 'sending...' : 'send_message()'}
                 </button>
               </>
             )}
