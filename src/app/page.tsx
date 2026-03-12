@@ -1056,25 +1056,46 @@ function BlogPage() {
   )
 }
 
-type Page = 'home' | 'about' | 'skills' | 'projects' | 'blog' | 'games' | 'contact'
+
 
 export default function Portfolio() {
-  const [page, setPage] = useState<Page>('home')
+  const [activeSection, setActiveSection] = useState('home')
   const [scrolled, setScrolled] = useState(false)
+  const [scrollProgress, setScrollProgress] = useState(0)
   const [form, setForm] = useState({ name: '', email: '', message: '' })
   const [sent, setSent] = useState(false)
   const typed = useTyping(['Cloud Engineer', 'DevOps Engineer', 'AWS Architect', 'Automation Builder'], 72, 2200)
   useReveal()
 
+  const sectionRefs = {
+    home:     useRef<HTMLElement>(null),
+    about:    useRef<HTMLElement>(null),
+    skills:   useRef<HTMLElement>(null),
+    projects: useRef<HTMLElement>(null),
+    blog:     useRef<HTMLElement>(null),
+    games:    useRef<HTMLElement>(null),
+    contact:  useRef<HTMLElement>(null),
+  }
+
   useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', fn)
-    return () => window.removeEventListener('scroll', fn)
+    const onScroll = () => {
+      setScrolled(window.scrollY > 20)
+      const total = document.documentElement.scrollHeight - window.innerHeight
+      setScrollProgress(total > 0 ? (window.scrollY / total) * 100 : 0)
+      const offsets = Object.entries(sectionRefs).map(([id, ref]) => ({
+        id, top: ref.current ? ref.current.getBoundingClientRect().top : 9999
+      }))
+      const visible = offsets.filter(s => s.top <= 120)
+      if (visible.length) setActiveSection(visible[visible.length - 1].id)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }) }, [page])
-
-  const go = (p: Page) => setPage(p)
+  const scrollTo = (id: string) => {
+    const ref = sectionRefs[id as keyof typeof sectionRefs]
+    if (ref?.current) ref.current.scrollIntoView({ behavior: 'smooth' })
+  }
 
   return (
     <>
@@ -1084,11 +1105,28 @@ export default function Portfolio() {
       <div className="orb orb-2" />
       <div className="orb orb-3" />
 
+      {/* Scroll progress bar */}
+      <div className="scroll-progress" style={{ width: `${scrollProgress}%` }} />
+
+      {/* Side dot navigation */}
+      <nav className="side-nav">
+        {(['home','about','skills','projects','blog','games','contact'] as const).map(s => (
+          <button
+            key={s}
+            className={`side-dot ${activeSection === s ? 'active' : ''}`}
+            onClick={() => scrollTo(s)}
+            title={s}
+          >
+            <span className="side-dot-label">{s}</span>
+          </button>
+        ))}
+      </nav>
+
       <nav className={`nav ${scrolled ? 'scrolled' : ''}`}>
-        <div className="nav-logo" onClick={() => go('home')}>alan.cloud</div>
+        <div className="nav-logo" onClick={() => scrollTo('home')}>alan.cloud</div>
         <div className="nav-links">
-          {(['home', 'about', 'skills', 'projects', 'blog', 'games'] as Page[]).map(p => (
-            <button key={p} className={`nav-link ${page === p ? 'active' : ''}`} onClick={() => go(p)}>
+          {(['home', 'about', 'skills', 'projects', 'blog', 'games', 'contact'] as const).map(p => (
+            <button key={p} className={`nav-link ${activeSection === p ? 'active' : ''}`} onClick={() => scrollTo(p)}>
               {p === 'games' ? '🎮 games' : p}
             </button>
           ))}
@@ -1097,213 +1135,210 @@ export default function Portfolio() {
           <a className="nav-resume" href="https://drive.google.com/file/d/1Z9kbNvGaXNXZh6FIhH2_eQ2iHsPffCMO/view?usp=sharing" target="_blank" rel="noopener noreferrer">
             ↓ resume
           </a>
-          <button className="nav-cta" onClick={() => go('contact')}>hire_me()</button>
+          <button className="nav-cta" onClick={() => scrollTo('contact')}>hire_me()</button>
         </div>
       </nav>
 
-      {page === 'home' && (
-        <div className="hero">
+      {/* ── HERO ── */}
+      <section ref={sectionRefs.home} id="home" className="hero">
+        <div>
+          <div className="hero-badge">
+            <div className="badge-dot" />
+            open_to_opportunities
+          </div>
+          <h1 className="hero-title">
+            <span className="line1">hello, world</span>
+            <span className="name">Alan Sarang</span>
+            <span className="role">
+              {typed}<span className="typed-cursor">|</span>
+            </span>
+          </h1>
+          <p className="hero-desc">
+            AWS Certified professional building reliable <code>cloud infrastructure</code>,{' '}
+            <code>CI/CD pipelines</code> and automated cost-optimization systems.
+          </p>
+          <div className="hero-btns">
+            <button className="btn-glow" onClick={() => scrollTo('projects')}>view_projects()</button>
+            <button className="btn-ghost" onClick={() => scrollTo('contact')}>get_in_touch()</button>
+            <a className="btn-resume" href="https://drive.google.com/file/d/1Z9kbNvGaXNXZh6FIhH2_eQ2iHsPffCMO/view?usp=sharing" target="_blank" rel="noopener noreferrer">↓ resume.pdf</a>
+          </div>
+          <div className="hero-stats">
+            <div className="stat"><div className="stat-n">1+</div><div className="stat-l">years_exp</div></div>
+            <div className="stat"><div className="stat-n">9</div><div className="stat-l">projects</div></div>
+            <div className="stat"><div className="stat-n">4</div><div className="stat-l">aws_certs</div></div>
+          </div>
+        </div>
+        <div className="hero-right">
+          <div className="terminal">
+            <div className="scanline" />
+            <div className="term-bar">
+              <div className="term-dot" style={{ background: '#ff5f57' }} />
+              <div className="term-dot" style={{ background: '#febc2e' }} />
+              <div className="term-dot" style={{ background: '#28c840' }} />
+              <div className="term-filename">profile.json</div>
+            </div>
+            <div className="term-body">
+              <div><span className="t-c">// Cloud &amp; DevOps Engineer</span></div>
+              <div><span className="t-k">name</span>{': '}<span className="t-s">&quot;Alan Sarang M A&quot;</span></div>
+              <div><span className="t-k">role</span>{': '}<span className="t-s">&quot;Cloud &amp; DevOps Intern&quot;</span></div>
+              <div><span className="t-k">company</span>{': '}<span className="t-s">&quot;TechBrein IT Solutions&quot;</span></div>
+              <div><span className="t-k">location</span>{': '}<span className="t-s">&quot;Bengaluru, IN&quot;</span></div>
+              <div><span className="t-k">cloud</span>{': ['}<span className="t-v">AWS</span>{', '}<span className="t-v">Azure</span>{', '}<span className="t-v">GCP</span>{']'}</div>
+              <div><span className="t-k">certs</span>{': '}<span className="t-n">4</span></div>
+              <div><span className="t-k">status</span>{': '}<span className="t-b">&quot;open_to_work&quot;</span> <span className="t-cur" /></div>
+            </div>
+          </div>
+          <div className="cert-strip">
+            {[
+              { i: '🏅', n: 'AWS Solutions Architect Associate' },
+              { i: '☁️', n: 'AWS Cloud Technology Consultant' },
+              { i: '🎓', n: 'AWS Cloud Solutions Architect' },
+              { i: '🔷', n: 'Oracle Cloud Infrastructure DevOps' },
+            ].map(c => (
+              <div key={c.n} className="cert-chip">
+                <div className="cert-icon">{c.i}</div>
+                <div className="cert-name">{c.n}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── ABOUT ── */}
+      <section ref={sectionRefs.about} id="about" className="section">
+        <div className="eyebrow">ABOUT ME</div>
+        <h2 className="section-h">The engineer <em>behind the infra</em></h2>
+        <div className="about-grid">
           <div>
-            <div className="hero-badge">
-              <div className="badge-dot" />
-              open_to_opportunities
-            </div>
-            <h1 className="hero-title">
-              <span className="line1">hello, world</span>
-              <span className="name">Alan Sarang</span>
-              <span className="role">
-                {typed}<span className="typed-cursor">|</span>
-              </span>
-            </h1>
-            <p className="hero-desc">
-              AWS Certified professional building reliable <code>cloud infrastructure</code>,{' '}
-              <code>CI/CD pipelines</code> and automated cost-optimization systems.
-            </p>
-            <div className="hero-btns">
-              <button className="btn-glow" onClick={() => go('projects')}>view_projects()</button>
-              <button className="btn-ghost" onClick={() => go('contact')}>get_in_touch()</button>
-              <a className="btn-resume" href="https://drive.google.com/file/d/1Z9kbNvGaXNXZh6FIhH2_eQ2iHsPffCMO/view?usp=sharing" target="_blank" rel="noopener noreferrer">↓ resume.pdf</a>
-            </div>
-            <div className="hero-stats">
-              <div className="stat"><div className="stat-n">1+</div><div className="stat-l">years_exp</div></div>
-              <div className="stat"><div className="stat-n">9</div><div className="stat-l">projects</div></div>
-              <div className="stat"><div className="stat-n">4</div><div className="stat-l">aws_certs</div></div>
-            </div>
+            <p className="about-p reveal d1">I&apos;m Alan Sarang M A, an AWS Certified Cloud &amp; DevOps Engineer based in Bengaluru, Karnataka. Passionate about building reliable infrastructure, automating toil, and keeping systems observable and cost-efficient.</p>
+            <p className="about-p reveal d2">Currently interning at TechBrein IT Solutions in Calicut, where I provision and manage EC2 infrastructure, implement monitoring with CloudWatch, Prometheus &amp; Grafana, and document deployment and recovery procedures.</p>
+            <p className="about-p reveal d3">I hold 4 certifications across AWS and Oracle. Outside of cloud work, I enjoy building small games — check out my Game Center!</p>
+            <button className="btn-glow reveal d4" style={{ marginTop: 28 }} onClick={() => scrollTo('contact')}>
+              lets_work_together()
+            </button>
           </div>
-          <div className="hero-right">
-            <div className="terminal">
-              <div className="scanline" />
-              <div className="term-bar">
-                <div className="term-dot" style={{ background: '#ff5f57' }} />
-                <div className="term-dot" style={{ background: '#febc2e' }} />
-                <div className="term-dot" style={{ background: '#28c840' }} />
-                <div className="term-filename">profile.json</div>
-              </div>
-              <div className="term-body">
-                <div><span className="t-c">// Cloud &amp; DevOps Engineer</span></div>
-                <div><span className="t-k">name</span>{': '}<span className="t-s">&quot;Alan Sarang M A&quot;</span></div>
-                <div><span className="t-k">role</span>{': '}<span className="t-s">&quot;Cloud &amp; DevOps Intern&quot;</span></div>
-                <div><span className="t-k">company</span>{': '}<span className="t-s">&quot;TechBrein IT Solutions&quot;</span></div>
-                <div><span className="t-k">location</span>{': '}<span className="t-s">&quot;Bengaluru, IN&quot;</span></div>
-                <div><span className="t-k">cloud</span>{': ['}<span className="t-v">AWS</span>{', '}<span className="t-v">Azure</span>{', '}<span className="t-v">GCP</span>{']'}</div>
-                <div><span className="t-k">certs</span>{': '}<span className="t-n">4</span></div>
-                <div><span className="t-k">status</span>{': '}<span className="t-b">&quot;open_to_work&quot;</span> <span className="t-cur" /></div>
-              </div>
-            </div>
-            <div className="cert-strip">
+          <div className="glass about-card reveal d2">
+            <div style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--text-muted)', marginBottom: 18 }}>// quick_facts.json</div>
+            <div className="info-grid">
               {[
-                { i: '🏅', n: 'AWS Solutions Architect Associate' },
-                { i: '☁️', n: 'AWS Cloud Technology Consultant' },
-                { i: '🎓', n: 'AWS Cloud Solutions Architect' },
-                { i: '🔷', n: 'Oracle Cloud Infrastructure DevOps' },
-              ].map(c => (
-                <div key={c.n} className="cert-chip">
-                  <div className="cert-icon">{c.i}</div>
-                  <div className="cert-name">{c.n}</div>
-                </div>
+                ['location', 'Bengaluru, Karnataka'],
+                ['experience', 'Intern (Sep 2025 - now)'],
+                ['education', 'BCA, Kannur University'],
+                ['focus', 'Cloud & DevOps'],
+                ['stack', 'Bash · Python · YAML'],
+                ['email', 'alansarang21@gmail.com'],
+              ].map(([l, v]) => (
+                <div key={l}><div className="il">{l}</div><div className="iv">{v}</div></div>
               ))}
             </div>
-          </div>
-        </div>
-      )}
-
-      {page === 'about' && (
-        <div className="section">
-          <div className="eyebrow">ABOUT ME</div>
-          <h2 className="section-h">The engineer <em>behind the infra</em></h2>
-          <div className="about-grid">
-            <div>
-              <p className="about-p reveal d1">I&apos;m Alan Sarang M A, an AWS Certified Cloud &amp; DevOps Engineer based in Bengaluru, Karnataka. Passionate about building reliable infrastructure, automating toil, and keeping systems observable and cost-efficient.</p>
-              <p className="about-p reveal d2">Currently interning at TechBrein IT Solutions in Calicut, where I provision and manage EC2 infrastructure, implement monitoring with CloudWatch, Prometheus &amp; Grafana, and document deployment and recovery procedures.</p>
-              <p className="about-p reveal d3">I hold 4 certifications across AWS and Oracle. Outside of cloud work, I enjoy building small games — check out my Game Center!</p>
-              <button className="btn-glow reveal d4" style={{ marginTop: 28 }} onClick={() => go('contact')}>
-                lets_work_together()
-              </button>
-            </div>
-            <div className="glass about-card reveal d2">
-              <div style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--text-muted)', marginBottom: 18 }}>// quick_facts.json</div>
-              <div className="info-grid">
-                {[
-                  ['location', 'Bengaluru, Karnataka'],
-                  ['experience', 'Intern (Sep 2025 - now)'],
-                  ['education', 'BCA, Kannur University'],
-                  ['focus', 'Cloud & DevOps'],
-                  ['stack', 'Bash · Python · YAML'],
-                  ['email', 'alansarang21@gmail.com'],
-                ].map(([l, v]) => (
-                  <div key={l}><div className="il">{l}</div><div className="iv">{v}</div></div>
-                ))}
-              </div>
-              <div className="cert-list-title">certifications</div>
-              {['AWS Solutions Architect Associate', 'AWS Cloud Technology Consultant', 'AWS Cloud Solutions Architect', 'Oracle Cloud Infrastructure DevOps Pro'].map(c => (
-                <div key={c} className="cert-row">{c}</div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {page === 'skills' && (
-        <div className="section">
-          <div className="eyebrow">SKILLS</div>
-          <h2 className="section-h">What I <em>bring to the table</em></h2>
-          <p className="section-sub">A toolkit built across cloud infrastructure, automation, and DevOps.</p>
-          <div className="skills-grid">
-            {SKILLS.map((s, i) => (
-              <div key={s.name} className={`glass skill-card reveal d${Math.min(i + 1, 6)}`}>
-                <div className="sk-icon">{s.icon}</div>
-                <div className="sk-name">{s.name}</div>
-                <div className="sk-desc">{s.desc}</div>
-                <div className="sk-tags">{s.tags.map(t => <span key={t} className="sk-tag">{t}</span>)}</div>
-              </div>
+            <div className="cert-list-title">certifications</div>
+            {['AWS Solutions Architect Associate', 'AWS Cloud Technology Consultant', 'AWS Cloud Solutions Architect', 'Oracle Cloud Infrastructure DevOps Pro'].map(c => (
+              <div key={c} className="cert-row">{c}</div>
             ))}
           </div>
         </div>
-      )}
+      </section>
 
-      {page === 'projects' && (
-        <div className="section">
-          <div className="eyebrow">PROJECTS</div>
-          <h2 className="section-h">Things I&apos;ve <em>built &amp; deployed</em></h2>
-          <p className="section-sub">AWS projects ranging from scalable infrastructure to cost automation, security, and observability.</p>
-          <div className="projects-grid">
-            {PROJECTS.map((p, i) => (
-              <div key={p.title} className={`glass proj-card reveal d${Math.min((i % 3) + 1, 6)}`}>
-                <div className="proj-img" style={{ background: p.bg }}>
-                  <span className="proj-emoji">{p.emoji}</span>
-                </div>
-                <div className="proj-body">
-                  <span className="proj-tag">{p.tag}</span>
-                  <div className="proj-title">{p.title}</div>
-                  <div className="proj-desc">{p.desc}</div>
-                  <div className="proj-stack">{p.stack.map(t => <span key={t} className="proj-st">{t}</span>)}</div>
-                </div>
-              </div>
-            ))}
-          </div>
+      {/* ── SKILLS ── */}
+      <section ref={sectionRefs.skills} id="skills" className="section">
+        <div className="eyebrow">SKILLS</div>
+        <h2 className="section-h">What I <em>bring to the table</em></h2>
+        <p className="section-sub">A toolkit built across cloud infrastructure, automation, and DevOps.</p>
+        <div className="skills-grid">
+          {SKILLS.map((s, i) => (
+            <div key={s.name} className={`glass skill-card reveal d${Math.min(i + 1, 6)}`}>
+              <div className="sk-icon">{s.icon}</div>
+              <div className="sk-name">{s.name}</div>
+              <div className="sk-desc">{s.desc}</div>
+              <div className="sk-tags">{s.tags.map(t => <span key={t} className="sk-tag">{t}</span>)}</div>
+            </div>
+          ))}
         </div>
-      )}
+      </section>
 
-      {page === 'blog' && (
+      {/* ── PROJECTS ── */}
+      <section ref={sectionRefs.projects} id="projects" className="section">
+        <div className="eyebrow">PROJECTS</div>
+        <h2 className="section-h">Things I&apos;ve <em>built &amp; deployed</em></h2>
+        <p className="section-sub">AWS projects ranging from scalable infrastructure to cost automation, security, and observability.</p>
+        <div className="projects-grid">
+          {PROJECTS.map((p, i) => (
+            <div key={p.title} className={`glass proj-card reveal d${Math.min((i % 3) + 1, 6)}`}>
+              <div className="proj-img" style={{ background: p.bg }}>
+                <span className="proj-emoji">{p.emoji}</span>
+              </div>
+              <div className="proj-body">
+                <span className="proj-tag">{p.tag}</span>
+                <div className="proj-title">{p.title}</div>
+                <div className="proj-desc">{p.desc}</div>
+                <div className="proj-stack">{p.stack.map(t => <span key={t} className="proj-st">{t}</span>)}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── BLOG ── */}
+      <section ref={sectionRefs.blog} id="blog">
         <BlogPage />
-      )}
+      </section>
 
-      {page === 'games' && (
-        <div className="section"><GameCenter /></div>
-      )}
+      {/* ── GAMES ── */}
+      <section ref={sectionRefs.games} id="games" className="section">
+        <GameCenter />
+      </section>
 
-      {page === 'contact' && (
-        <div className="section">
-          <div className="eyebrow">CONTACT</div>
-          <h2 className="section-h">Let&apos;s <em>build something</em></h2>
-          <p className="section-sub">Open to full-time roles, internships, and freelance cloud projects.</p>
-          <div className="contact-grid">
-            <div className="reveal d1">
-              {[
-                { i: '📍', l: 'location', v: 'Bengaluru, Karnataka' },
-                { i: '✉️', l: 'email', v: 'alansarang21@gmail.com' },
-                { i: '💼', l: 'linkedin', v: 'linkedin.com/in/alan-sarang' },
-                { i: '🐙', l: 'github', v: 'github.com/alansarang' },
-              ].map(c => (
-                <div key={c.l} className="contact-item">
-                  <div className="contact-ico">{c.i}</div>
-                  <div><div className="contact-lbl">{c.l}</div><div className="contact-val">{c.v}</div></div>
-                </div>
-              ))}
-            </div>
-            <div className="glass contact-form reveal d2">
-              {sent ? (
-                <div style={{ textAlign: 'center', padding: '40px 0' }}>
-                  <div style={{ fontSize: 44, marginBottom: 14 }}>🚀</div>
-                  <h3 style={{ fontFamily: 'var(--mono)', fontSize: 18, color: 'var(--teal)', marginBottom: 8 }}>message_sent!</h3>
-                  <p style={{ color: 'var(--text-soft)', fontSize: 14 }}>Thanks! I&apos;ll get back to you within 24 hours.</p>
-                  <button className="btn-glow" style={{ marginTop: 24 }} onClick={() => setSent(false)}>send_another()</button>
-                </div>
-              ) : (
-                <>
-                  {[['name', 'text', 'your_name'], ['email', 'email', 'your@email.com']].map(([k, t, ph]) => (
-                    <div key={k} className="fgroup">
-                      <label className="flabel">{k}</label>
-                      <input className="finput" type={t} placeholder={ph}
-                        value={form[k as keyof typeof form]}
-                        onChange={e => setForm(f => ({ ...f, [k]: e.target.value }))} />
-                    </div>
-                  ))}
-                  <div className="fgroup">
-                    <label className="flabel">message</label>
-                    <textarea className="finput ftextarea" placeholder="describe_your_project..."
-                      value={form.message} onChange={e => setForm(f => ({ ...f, message: e.target.value }))} />
+      {/* ── CONTACT ── */}
+      <section ref={sectionRefs.contact} id="contact" className="section">
+        <div className="eyebrow">CONTACT</div>
+        <h2 className="section-h">Let&apos;s <em>build something</em></h2>
+        <p className="section-sub">Open to full-time roles, internships, and freelance cloud projects.</p>
+        <div className="contact-grid">
+          <div className="reveal d1">
+            {[
+              { i: '📍', l: 'location', v: 'Bengaluru, Karnataka' },
+              { i: '✉️', l: 'email', v: 'alansarang21@gmail.com' },
+              { i: '💼', l: 'linkedin', v: 'linkedin.com/in/alan-sarang' },
+              { i: '🐙', l: 'github', v: 'github.com/alansarang' },
+            ].map(c => (
+              <div key={c.l} className="contact-item">
+                <div className="contact-ico">{c.i}</div>
+                <div><div className="contact-lbl">{c.l}</div><div className="contact-val">{c.v}</div></div>
+              </div>
+            ))}
+          </div>
+          <div className="glass contact-form reveal d2">
+            {sent ? (
+              <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                <div style={{ fontSize: 44, marginBottom: 14 }}>🚀</div>
+                <h3 style={{ fontFamily: 'var(--mono)', fontSize: 18, color: 'var(--teal)', marginBottom: 8 }}>message_sent!</h3>
+                <p style={{ color: 'var(--text-soft)', fontSize: 14 }}>Thanks! I&apos;ll get back to you within 24 hours.</p>
+                <button className="btn-glow" style={{ marginTop: 24 }} onClick={() => setSent(false)}>send_another()</button>
+              </div>
+            ) : (
+              <>
+                {[['name', 'text', 'your_name'], ['email', 'email', 'your@email.com']].map(([k, t, ph]) => (
+                  <div key={k} className="fgroup">
+                    <label className="flabel">{k}</label>
+                    <input className="finput" type={t} placeholder={ph}
+                      value={form[k as keyof typeof form]}
+                      onChange={e => setForm(f => ({ ...f, [k]: e.target.value }))} />
                   </div>
-                  <button className="btn-glow" style={{ width: '100%' }}
-                    onClick={() => { if (form.name && form.email && form.message) setSent(true) }}>
-                    send_message()
-                  </button>
-                </>
-              )}
-            </div>
+                ))}
+                <div className="fgroup">
+                  <label className="flabel">message</label>
+                  <textarea className="finput ftextarea" placeholder="describe_your_project..."
+                    value={form.message} onChange={e => setForm(f => ({ ...f, message: e.target.value }))} />
+                </div>
+                <button className="btn-glow" style={{ width: '100%' }}
+                  onClick={() => { if (form.name && form.email && form.message) setSent(true) }}>
+                  send_message()
+                </button>
+              </>
+            )}
           </div>
         </div>
-      )}
+      </section>
 
       <footer>
         <div className="footer-logo">[ alan.cloud ]</div>

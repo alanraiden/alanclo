@@ -86,6 +86,40 @@ body {
 }
 .btn-resume:hover { background: rgba(0,245,210,0.14); border-color: var(--teal); box-shadow: 0 0 24px rgba(0,245,210,0.25); transform: translateY(-2px); }
 
+/* ─── Scroll progress bar ─── */
+.scroll-progress {
+  position: fixed; top: 0; left: 0; height: 2px; z-index: 9999;
+  background: linear-gradient(90deg, var(--teal), #0ea5e9, #818cf8);
+  box-shadow: 0 0 10px rgba(0,245,210,0.6);
+  transition: width 0.1s linear;
+  pointer-events: none;
+}
+
+/* ─── Side dot navigation ─── */
+.side-nav {
+  position: fixed; right: 20px; top: 50%; transform: translateY(-50%);
+  z-index: 300; display: flex; flex-direction: column; gap: 14px;
+  align-items: flex-end;
+}
+.side-dot {
+  position: relative; width: 8px; height: 8px; border-radius: 50%;
+  background: rgba(0,245,210,0.2); border: 1px solid rgba(0,245,210,0.3);
+  cursor: pointer; transition: all 0.25s; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.side-dot:hover, .side-dot.active {
+  background: var(--teal); border-color: var(--teal);
+  box-shadow: 0 0 10px rgba(0,245,210,0.6); transform: scale(1.35);
+}
+.side-dot-label {
+  position: absolute; right: 18px; font-family: var(--mono);
+  font-size: 10px; color: var(--teal); background: rgba(3,7,15,0.85);
+  padding: 3px 8px; border-radius: 4px; white-space: nowrap;
+  border: 1px solid rgba(0,245,210,0.2); opacity: 0;
+  pointer-events: none; transition: opacity 0.2s; letter-spacing: 0.5px;
+}
+.side-dot:hover .side-dot-label { opacity: 1; }
+
 /* ─── Page wrapper ─── */
 .page-wrap { position: relative; }
 
@@ -145,6 +179,8 @@ body {
   min-height: 100vh;
   padding: 120px clamp(20px,6vw,80px) 100px;
   max-width: 1240px; margin: 0 auto;
+  scroll-margin-top: 60px;
+  border-top: 1px solid rgba(0,245,210,0.05);
 }
 .section-inner { max-width: 1240px; margin: 0 auto; }
 
@@ -187,6 +223,7 @@ body {
   gap: 60px; align-items: center;
   padding: 130px clamp(20px,6vw,80px) 80px;
   max-width: 1240px; margin: 0 auto;
+  scroll-margin-top: 60px;
 }
 
 .hero-badge {
@@ -500,4 +537,5 @@ footer {
   .hero-right { display: none; }
   .about-grid,.contact-grid { grid-template-columns: 1fr; }
   .skills-grid,.projects-grid,.blog-grid,.games-grid { grid-template-columns: 1fr; }
+  .side-nav { display: none; }
 }
