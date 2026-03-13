@@ -1,0 +1,12 @@
+# robots.txt — alan-sarang.vercel.app
+# https://www.robotstxt.org
+
+User-agent: *
+Allow: /
+
+# Block Next.js internals
+Disallow: /_next/
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://alansarang.online/sitemap.xml
