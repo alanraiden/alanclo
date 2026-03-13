@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
           <p style="margin:28px 0 0;color:#6b9e94;font-size:11px">Sent via alan.cloud portfolio contact form</p>
         </div>
       `,
-      replyTo: email,
+      reply_to: email,
     })
 
     return NextResponse.json({ success: true })
