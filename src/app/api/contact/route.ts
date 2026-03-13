@@ -15,9 +15,10 @@ export async function POST(req: NextRequest) {
       from: 'onboarding@resend.dev',
       to: 'alansarang21@gmail.com',
       subject: `Portfolio message from ${name}`,
+      reply_to: email,
       html: `
         <div style="font-family:monospace;background:#03070f;color:#e8f0ed;padding:32px;border-radius:12px;max-width:560px">
-          <h2 style="color:#00F5D2;margin:0 0 20px">📬 New message from your portfolio</h2>
+          <h2 style="color:#00F5D2;margin:0 0 20px">New message from your portfolio</h2>
           <table style="width:100%;border-collapse:collapse">
             <tr>
               <td style="color:#6b9e94;padding:8px 0;width:80px">Name</td>
@@ -32,10 +33,9 @@ export async function POST(req: NextRequest) {
               <td style="color:#e8f0ed;padding:8px 0;line-height:1.7">${message.replace(/\n/g, '<br/>')}</td>
             </tr>
           </table>
-          <p style="margin:28px 0 0;color:#6b9e94;font-size:11px">Sent via alan.cloud portfolio contact form</p>
+          <p style="margin:28px 0 0;color:#6b9e94;font-size:11px">Sent via alansarang.online</p>
         </div>
       `,
-      reply_to: email,
     })
 
     return NextResponse.json({ success: true })
